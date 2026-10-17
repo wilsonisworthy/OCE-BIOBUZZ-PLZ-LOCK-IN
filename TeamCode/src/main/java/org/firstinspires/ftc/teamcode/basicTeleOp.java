@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@TeleOp(name = "TELEOP LOCK IN", group = "Robot")
+@TeleOp(name = "BIOBUZZ TELEOP", group = "Robot")
 
 public class basicTeleOp extends OpMode {
     // This declares the four motors needed
@@ -41,14 +41,7 @@ public class basicTeleOp extends OpMode {
         // motors are opposite to the right ones.
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
 
-        // This uses RUN_USING_ENCODER to be more accurate.   If you don't have the encoder
-        // wires, you should remove these
-        frontLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         imu = hardwareMap.get(IMU.class, "imu");
         // This needs to be changed to match the orientation on your robot
@@ -64,50 +57,42 @@ public class basicTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        telemetry.addLine("Press A to reset Yaw");
-        telemetry.addLine("Hold left bumper to drive in robot relative");
-        telemetry.addLine("The left joystick sets the robot direction");
-        telemetry.addLine("Moving the right joystick left and right turns the robot");
 
-        // If you press the A button, then you reset the Yaw to be zero from the way
-        // the robot is currently pointing
-        if (gamepad1.a) {
-            imu.resetYaw();
-        }
-        // If you press the left bumper, you get a drive from the point of view of the robot
-        // (much like driving an RC vehicle)
-        if (gamepad1.left_bumper) {
-            drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-        } else {
-            driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
-        }
-
-        if (gamepad1.right_bumper) {
+        //intake
+        if (gamepad2.right_bumper) {
             intakeMotor.setPower(intakeSpeed);
-        }
-        else if (gamepad1.left_bumper)
-        {
+        } else if (gamepad2.left_bumper) {
             intakeMotor.setPower(-intakeSpeed);
         } else {
             intakeMotor.setPower(0);
         }
 
-        if(gamepad1.b){
+        //transfer
+        if(gamepad2.b){
             transferMotor.setPower(0.8);
-        } else if(gamepad1.x){
+        } else if(gamepad2.x){
             transferMotor.setPower(-0.8);
         } else{
             transferMotor.setPower(0);
         }
 
-        if(gamepad1.dpad_up){
+        //shooter
+        if(gamepad2.dpad_left){
             shooterMotor.setPower(0.7);
-        } else if (gamepad1.dpad_down){
+        } else if (gamepad2.dpad_up){
+            shooterMotor.setPower(0.85);
+        } else if (gamepad2.dpad_right){
             shooterMotor.setPower(1);
-        }
-        else {
+        } else if (gamepad2.dpad_down){
             shooterMotor.setPower(0);
         }
+
+
+        if (gamepad1.a) {
+            imu.resetYaw();
+        }
+
+        driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
 
     }
