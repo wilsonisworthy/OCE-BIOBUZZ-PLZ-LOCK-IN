@@ -100,11 +100,12 @@ public class basicTeleOp extends OpMode {
             transferMotor.setPower(0);
         }
 
-        if(gamepad1.a){
-            shooterMotor.setPower(0.6);
-        } else if(gamepad1.b){
-            shooterMotor.setPower(-0.6);
-        } else{
+        if(gamepad1.dpad_up){
+            shooterMotor.setPower(0.7);
+        } else if (gamepad1.dpad_down){
+            shooterMotor.setPower(1);
+        }
+        else {
             shooterMotor.setPower(0);
         }
 
