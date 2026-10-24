@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -21,7 +22,12 @@ public class basicTeleOp extends OpMode {
     DcMotor intakeMotor;
     DcMotor transferMotor;
     DcMotor shooterMotor;
+
+    Servo flowerServo;
     double intakeSpeed = 0.7;
+    double servoPos = 0.19;
+
+    double shooterPower = 0.3;
 
     // This declares the IMU needed to get the current direction the robot is facing
     IMU imu;
@@ -36,63 +42,45 @@ public class basicTeleOp extends OpMode {
         transferMotor = hardwareMap.get(DcMotor.class, "Transfer");
         shooterMotor = hardwareMap.get(DcMotor.class,"Shooter");
 
+        flowerServo = hardwareMap.get(Servo.class, "flower"); // port 5 expansion hub
+
 
         // We set the left motors in reverse which is needed for drive trains where the left
         // motors are opposite to the right ones.
-        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
+        backRightDrive.setDirection(DcMotor.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+
+        frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         imu = hardwareMap.get(IMU.class, "imu");
         // This needs to be changed to match the orientation on your robot
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
-                RevHubOrientationOnRobot.LogoFacingDirection.UP;
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
         RevHubOrientationOnRobot.UsbFacingDirection usbDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+                RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
         RevHubOrientationOnRobot orientationOnRobot = new
                 RevHubOrientationOnRobot(logoDirection, usbDirection);
         imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+        flowerServo.setPosition(servoPos);
     }
 
     @Override
     public void loop() {
 
-        //intake
-        if (gamepad2.right_bumper) {
-            intakeMotor.setPower(intakeSpeed);
-        } else if (gamepad2.left_bumper) {
-            intakeMotor.setPower(-intakeSpeed);
-        } else {
-            intakeMotor.setPower(0);
-        }
-
-        //transfer
-        if(gamepad2.b){
-            transferMotor.setPower(0.8);
-        } else if(gamepad2.x){
-            transferMotor.setPower(-0.8);
-        } else{
-            transferMotor.setPower(0);
-        }
-
-        //shooter
-        if(gamepad2.dpad_left){
-            shooterMotor.setPower(0.7);
-        } else if (gamepad2.dpad_up){
-            shooterMotor.setPower(0.85);
-        } else if (gamepad2.dpad_right){
-            shooterMotor.setPower(1);
-        } else if (gamepad2.dpad_down){
-            shooterMotor.setPower(0);
-        }
-
-
-        if (gamepad1.a) {
-            imu.resetYaw();
-        }
+        DefaultControl();
 
         driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+
+        telemetry.addData("Status", "Running");
+        telemetry.addData("Shooter Power: ", shooterPower);
+        telemetry.update();
 
 
     }
@@ -113,9 +101,12 @@ public class basicTeleOp extends OpMode {
 
         // Finally, call the drive method with robot relative forward and right amounts
         drive(newForward, newRight, rotate);
+
+        if (gamepad1.a) {
+            imu.resetYaw();
+        }
     }
 
-    // Thanks to FTC16072 for sharing this code!!
     public void drive(double forward, double right, double rotate) {
         // This calculates the power needed for *each wheel based on the amount of forward,
         // strafe right, and rotate
@@ -142,5 +133,81 @@ public class basicTeleOp extends OpMode {
         frontRightDrive.setPower(maxSpeed * (frontRightPower / maxPower));
         backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
         backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
+    }
+
+    public void DefaultControl(){
+        //intake
+        if (gamepad2.right_bumper) {
+            intakeMotor.setPower(intakeSpeed);
+        } else if (gamepad2.left_bumper) {
+            intakeMotor.setPower(-intakeSpeed);
+        } else {
+            intakeMotor.setPower(0);
+        }
+
+        //transfer
+        if(gamepad2.b){
+            transferMotor.setPower(0.8);
+        } else if(gamepad2.x){
+            transferMotor.setPower(-0.8);
+        } else{
+            transferMotor.setPower(0);
+        }
+
+
+        if(gamepad2.right_trigger > 0.9){
+            servoPos = 0.775;
+        } else if (gamepad2.left_trigger > 0.9){
+            servoPos = 0.19;
+        }
+
+        flowerServo.setPosition(servoPos);
+
+        shooterControl();
+    }
+
+    public void shooterControl(){
+        if(gamepad2.dpad_left){
+            shooterPower = 0.3;
+        } else if (gamepad2.dpad_right){
+            shooterPower = 0.6;
+        }
+
+        if (gamepad2.dpadUpWasPressed()){
+            shooterPower += 0.02;
+        } else if (gamepad2.dpadDownWasPressed()){
+            shooterPower -= 0.02;
+        }
+
+        shooterPower = Math.max(0, shooterPower);
+        shooterPower = Math.min(1, shooterPower);
+
+        shooterMotor.setPower(shooterPower);
+    }
+
+    public void testMotor(){
+        if(gamepad1.dpad_up){
+            frontLeftDrive.setPower(0.8);
+        } else {
+            frontLeftDrive.setPower(0);
+        }
+
+        if(gamepad1.dpad_left){
+            frontRightDrive.setPower(0.8);
+        } else {
+            frontRightDrive.setPower(0);
+        }
+
+        if(gamepad1.dpad_down){
+            backLeftDrive.setPower(0.8);
+        } else {
+            backLeftDrive.setPower(0);
+        }
+
+        if(gamepad1.dpad_right){
+            backRightDrive.setPower(0.8);
+        } else {
+            backRightDrive.setPower(0);
+        }
     }
 }
