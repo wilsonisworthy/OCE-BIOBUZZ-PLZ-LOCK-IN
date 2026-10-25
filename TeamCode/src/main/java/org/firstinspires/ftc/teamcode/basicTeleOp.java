@@ -27,7 +27,7 @@ public class basicTeleOp extends OpMode {
     double intakeSpeed = 0.7;
     double servoPos = 0.19;
 
-    double shooterPower = 0.3;
+    double shooterPower = 0.4;
 
     // This declares the IMU needed to get the current direction the robot is facing
     IMU imu;
@@ -118,6 +118,12 @@ public class basicTeleOp extends OpMode {
         double maxPower = 1.0;
         double maxSpeed = 1.0;  // make this slower for outreaches
 
+        if(gamepad1.right_trigger>0.8){
+            maxSpeed=0.5;
+        } else {
+            maxSpeed=1.0;
+        }
+
         // This is needed to make sure we don't pass > 1.0 to any wheel
         // It allows us to keep all of the motors in proportion to what they should
         // be and not get clipped
@@ -168,9 +174,9 @@ public class basicTeleOp extends OpMode {
 
     public void shooterControl(){
         if(gamepad2.dpad_left){
-            shooterPower = 0.3;
+            shooterPower = 0.4;
         } else if (gamepad2.dpad_right){
-            shooterPower = 0.6;
+            shooterPower = 0.7;
         }
 
         if (gamepad2.dpadUpWasPressed()){
