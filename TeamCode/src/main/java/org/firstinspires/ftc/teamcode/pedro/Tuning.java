@@ -17,6 +17,6 @@ import org.firstinspires.ftc.teamcode.pedro.procedures.TwoWheelTuner;
 public class Tuning {
     @Tuner
     public static Procedure foresightTuner() {
-        return new ForesightTuner((hardwareMap) ->  new TwoWheelLocalizer(hardwareMap, Constants.localizerConfig), (hardwareMap) -> new Mecanum(hardwareMap, Constants.drivetrainConfig));
+        return new ForesightTuner((hardwareMap) -> new TwoWheelLocalizer(hardwareMap, Constants.localizerConfig), (hardwareMap) -> new Mecanum(hardwareMap, Constants.drivetrainConfig));
     }
 }
