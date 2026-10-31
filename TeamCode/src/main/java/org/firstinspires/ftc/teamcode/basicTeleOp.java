@@ -1,5 +1,3 @@
-package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -10,6 +8,11 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "BIOBUZZ TELEOP", group = "Robot")
 
@@ -24,10 +27,12 @@ public class basicTeleOp extends OpMode {
     DcMotor shooterMotor;
 
     Servo flowerServo;
+    NormalizedColorSensor colorSensor;
     double intakeSpeed = 0.7;
     double servoPos = 0.19;
 
     double shooterPower = 0.4;
+    String colorDetected;
 
     // This declares the IMU needed to get the current direction the robot is facing
     IMU imu;
@@ -41,6 +46,7 @@ public class basicTeleOp extends OpMode {
         intakeMotor = hardwareMap.get(DcMotor.class, "Intake Motor");
         transferMotor = hardwareMap.get(DcMotor.class, "Transfer");
         shooterMotor = hardwareMap.get(DcMotor.class,"Shooter");
+        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "colorSensor");
 
         flowerServo = hardwareMap.get(Servo.class, "flower"); // port 5 expansion hub
 
@@ -50,7 +56,7 @@ public class basicTeleOp extends OpMode {
         backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        transferMotor.setDirection(DcMotor.Direction.REVERSE);
 
         frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -75,11 +81,14 @@ public class basicTeleOp extends OpMode {
     @Override
     public void loop() {
 
+        updateSensor();
+
         DefaultControl();
 
         driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
         telemetry.addData("Status", "Running");
+        telemetry.addData("Detected", colorDetected);
         telemetry.addData("Shooter Power: ", shooterPower);
         telemetry.update();
 
@@ -105,6 +114,17 @@ public class basicTeleOp extends OpMode {
 
         if (gamepad1.a) {
             imu.resetYaw();
+        }
+    }
+
+    public void updateSensor(){
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+
+        if (colors.red > colors.blue * 1.3 &&
+                colors.green > colors.blue * 1.3) {
+            colorDetected = "YELLOW";
+        } else {
+            colorDetected = "WHITE";
         }
     }
 
@@ -152,12 +172,16 @@ public class basicTeleOp extends OpMode {
             intakeMotor.setPower(0);
         }
 
+
+
         //transfer
-        if(gamepad2.b){
+        if (colorDetected == "YELLOW" && !gamepad2.x){
+            transferMotor.setPower(0);
+        } else if (colorDetected == "WHITE" && gamepad2.right_bumper){
             transferMotor.setPower(0.8);
-        } else if(gamepad2.x){
-            transferMotor.setPower(-0.8);
-        } else{
+        } else if (gamepad2.x) {
+            transferMotor.setPower(0.8);
+        } else {
             transferMotor.setPower(0);
         }
 
