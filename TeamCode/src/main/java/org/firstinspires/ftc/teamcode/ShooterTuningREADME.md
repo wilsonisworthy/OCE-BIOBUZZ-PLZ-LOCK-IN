@@ -2,17 +2,35 @@
 
 How to tune the shooter speed controller. Do the steps in order, because each one depends on the one before it.
 
-All the values you change are near the top of `basicTeleOp.java`:
+The gains are at the top of `ShooterPID.java`:
+
+```java
+public static double kP = 0.0005;
+public static double kI = 0.00025;
+public static double kD = 0;
+public static double kF = 1.0 / 6000;
+```
+
+The motor constants are near the top of `basicTeleOp.java`:
 
 ```java
 static final double SHOOTER_MAX_RPM = 6000;
 static final double SHOOTER_TICKS_PER_REV = 28;
-
-//                                     kP      kI       kD  kF
-ShooterPID shooterPID = new ShooterPID(0.0005, 0.00025, 0,  1.0 / SHOOTER_MAX_RPM);
 ```
 
-Every change needs a redeploy to the robot.
+## Using FTC Dashboard
+
+FTC Dashboard lets you change the gains and graph the RPM while the robot runs.
+
+1. Connect your laptop to the robot's Wi-Fi.
+2. In a browser, open `http://192.168.43.1:8080/dash` for a Control Hub, or `http://192.168.49.1:8080/dash` for a phone Robot Controller.
+3. Initialize and start `BIOBUZZ TELEOP`.
+4. In the Configuration panel, open `ShooterPID`, edit a gain, and save it. It takes effect right away.
+5. In the Graph panel, select `Shooter Target RPM:` and `Shooter RPM:`.
+
+**Dashboard changes are lost when the robot restarts.** Copy your final gains into `ShooterPID.java` and redeploy.
+
+Dashboard is for practice only. Disconnect your laptop from the robot's Wi-Fi before a match.
 
 ## What each gain does
 
@@ -54,16 +72,12 @@ Then run the shooter and check that `Shooter RPM` changes when the wheel spins. 
    ```
 2. Deploy, press Start, and let the flywheel reach full speed.
 3. Write down `Shooter RPM`.
-4. Set `SHOOTER_MAX_RPM` to that number.
-5. Change the line back to `shooterMotor.setPower(shooterPower);`.
+4. Set `SHOOTER_MAX_RPM` to that number, and set `kF` in `ShooterPID.java` to `1.0 / ` that number.
+5. Change the line back to `shooterMotor.setPower(shooterPower);` and redeploy.
 
 ## Step 3: Tune kF
 
-Turn off the rest of the controller:
-
-```java
-ShooterPID shooterPID = new ShooterPID(0, 0, 0, 1.0 / SHOOTER_MAX_RPM);
-```
+In the dashboard, set `kP`, `kI`, and `kD` to 0.
 
 1. Use the high preset and wait for the speed to settle.
 2. Compare `Shooter RPM` to `Shooter Target RPM`.
@@ -74,8 +88,6 @@ ShooterPID shooterPID = new ShooterPID(0, 0, 0, 1.0 / SHOOTER_MAX_RPM);
    ```
 
 4. Check the low preset. It should also be close. Split the difference if one preset reads high and the other low.
-
-Once `kF` stops being `1.0 / SHOOTER_MAX_RPM`, write it as a plain number in the `ShooterPID` line.
 
 The speed doesn't need to be exact here. `kP` and `kI` handle what's left.
 
@@ -133,7 +145,7 @@ Keep each preset below your measured max RPM, ideally by 10% or more. At the max
 
 ## Final values
 
-Fill this in once the shooter is tuned.
+Fill this in once the shooter is tuned, and copy the gains into `ShooterPID.java`.
 
 | Value | Result |
 |-------|--------|

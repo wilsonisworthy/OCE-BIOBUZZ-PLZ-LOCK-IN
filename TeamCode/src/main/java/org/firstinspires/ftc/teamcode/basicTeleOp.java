@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -38,8 +40,7 @@ public class basicTeleOp extends OpMode {
     static final double SHOOTER_MAX_RPM = 6000;
     static final double SHOOTER_TICKS_PER_REV = 28;
 
-    // Starting gains, these need to be tuned on the robot
-    ShooterPID shooterPID = new ShooterPID(0.0005, 0.00025, 0, 1.0 / SHOOTER_MAX_RPM);
+    ShooterPID shooterPID = new ShooterPID();
 
     double shooterTargetRPM = 2400;
     double shooterRPM = 0;
@@ -51,6 +52,9 @@ public class basicTeleOp extends OpMode {
 
     @Override
     public void init() {
+        // Sends telemetry to both the Driver Station and FTC Dashboard
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         frontLeftDrive = hardwareMap.get(DcMotor.class, "Front Left Drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "Front Right Drive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "Back Left Drive");
