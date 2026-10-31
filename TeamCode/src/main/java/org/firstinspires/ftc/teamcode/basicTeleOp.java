@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -26,14 +27,23 @@ public class basicTeleOp extends OpMode {
     DcMotor backRightDrive;
     DcMotor intakeMotor;
     DcMotor transferMotor;
-    DcMotor shooterMotor;
+    DcMotorEx shooterMotor;
 
     Servo flowerServo;
     NormalizedColorSensor colorSensor;
     double intakeSpeed = 0.7;
     double servoPos = 0.19;
 
-    double shooterPower = 0.4;
+    // This assumes a 6000 RPM motor with 28 ticks per revolution, change these if yours is different
+    static final double SHOOTER_MAX_RPM = 6000;
+    static final double SHOOTER_TICKS_PER_REV = 28;
+
+    // Starting gains, these need to be tuned on the robot
+    ShooterPID shooterPID = new ShooterPID(0.0005, 0.00025, 0, 1.0 / SHOOTER_MAX_RPM);
+
+    double shooterTargetRPM = 2400;
+    double shooterRPM = 0;
+    double shooterPower = 0;
     String colorDetected;
 
     // This declares the IMU needed to get the current direction the robot is facing
@@ -47,7 +57,7 @@ public class basicTeleOp extends OpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "Back Right Drive");
         intakeMotor = hardwareMap.get(DcMotor.class, "Intake Motor");
         transferMotor = hardwareMap.get(DcMotor.class, "Transfer");
-        shooterMotor = hardwareMap.get(DcMotor.class,"Shooter");
+        shooterMotor = hardwareMap.get(DcMotorEx.class,"Shooter");
         colorSensor = hardwareMap.get(NormalizedColorSensor.class, "colorSensor");
 
         flowerServo = hardwareMap.get(Servo.class, "flower"); // port 5 expansion hub
@@ -59,6 +69,11 @@ public class basicTeleOp extends OpMode {
         backRightDrive.setDirection(DcMotor.Direction.REVERSE);
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         transferMotor.setDirection(DcMotor.Direction.REVERSE);
+
+        // ShooterPID sets the power itself, so the hub's built in velocity control stays off.
+        // The encoder can still be read in this mode.
+        shooterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         frontLeftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -91,6 +106,8 @@ public class basicTeleOp extends OpMode {
 
         telemetry.addData("Status", "Running");
         telemetry.addData("Detected", colorDetected);
+        telemetry.addData("Shooter Target RPM: ", shooterTargetRPM);
+        telemetry.addData("Shooter RPM: ", shooterRPM);
         telemetry.addData("Shooter Power: ", shooterPower);
         telemetry.update();
 
@@ -201,19 +218,24 @@ public class basicTeleOp extends OpMode {
 
     public void shooterControl(){
         if(gamepad2.dpad_left){
-            shooterPower = 0.4;
+            shooterTargetRPM = 2400;
         } else if (gamepad2.dpad_right){
-            shooterPower = 0.7;
+            shooterTargetRPM = 4200;
         }
 
         if (gamepad2.dpadUpWasPressed()){
-            shooterPower += 0.02;
+            shooterTargetRPM += 100;
         } else if (gamepad2.dpadDownWasPressed()){
-            shooterPower -= 0.02;
+            shooterTargetRPM -= 100;
         }
 
-        shooterPower = Math.max(0, shooterPower);
-        shooterPower = Math.min(1, shooterPower);
+        shooterTargetRPM = Math.max(0, shooterTargetRPM);
+        shooterTargetRPM = Math.min(SHOOTER_MAX_RPM, shooterTargetRPM);
+
+        // getVelocity is in ticks per second, so convert it to revolutions per minute
+        // abs so a backwards encoder can't read negative and send the shooter to full power
+        shooterRPM = Math.abs(shooterMotor.getVelocity()) * 60 / SHOOTER_TICKS_PER_REV;
+        shooterPower = shooterPID.calculate(shooterTargetRPM, shooterRPM);
 
         shooterMotor.setPower(shooterPower);
     }
