@@ -3,12 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -16,16 +14,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "BIOBUZZ TELEOP", group = "Robot")
 
-public class basicTeleOp extends OpMode {
+public class BIOBUZZ_TELEOP extends OpMode {
     // This declares the four motors needed
     DcMotor frontLeftDrive;
     DcMotor frontRightDrive;
     DcMotor backLeftDrive;
+
     DcMotor backRightDrive;
     DcMotor intakeMotor;
     DcMotor transferMotor;
@@ -198,14 +195,26 @@ public class basicTeleOp extends OpMode {
 
 
         //transfer
-        if (colorDetected == "YELLOW" && !gamepad2.x){
-            transferMotor.setPower(0);
-        } else if (colorDetected == "WHITE" && gamepad2.right_bumper){
-            transferMotor.setPower(0.8);
-        } else if (gamepad2.x) {
-            transferMotor.setPower(0.8);
+
+        boolean colorSensorWorking = false;
+        if (colorSensorWorking) {
+            if (colorDetected == "YELLOW" && !gamepad2.x) {
+                transferMotor.setPower(0);
+            } else if (colorDetected == "WHITE" && gamepad2.right_bumper) {
+                transferMotor.setPower(1);
+            } else if (gamepad2.x) {
+                transferMotor.setPower(1);
+            } else {
+                transferMotor.setPower(0);
+            }
         } else {
-            transferMotor.setPower(0);
+            if (gamepad2.x){
+                transferMotor.setPower(1);
+            } else if (gamepad2.b){
+                transferMotor.setPower(-1);
+            } else {
+                transferMotor.setPower(0);
+            }
         }
 
 
