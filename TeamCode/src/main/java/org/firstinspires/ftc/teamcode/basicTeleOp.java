@@ -123,6 +123,7 @@ public class basicTeleOp extends OpMode {
         // First, convert direction being asked to drive to polar coordinates
         double theta = Math.atan2(forward, right);
         double r = Math.hypot(right, forward);
+        r = r * r * r;
 
         // Second, rotate angle by the angle the robot is pointing
         theta = AngleUnit.normalizeRadians(theta -
@@ -131,6 +132,8 @@ public class basicTeleOp extends OpMode {
         // Third, convert back to cartesian
         double newForward = r * Math.sin(theta);
         double newRight = r * Math.cos(theta);
+
+        rotate = rotate * rotate * rotate;
 
         // Finally, call the drive method with robot relative forward and right amounts
         drive(newForward, newRight, rotate);
