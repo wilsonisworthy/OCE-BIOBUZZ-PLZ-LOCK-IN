@@ -103,7 +103,7 @@ public class BIOBUZZ_TELEOP extends OpMode {
 
         DefaultControl();
 
-        driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+        driveFieldRelative(Math.pow(-gamepad1.left_stick_y, 3), Math.pow(gamepad1.left_stick_x, 3), Math.pow(gamepad1.right_stick_x,3));
 
 //
 //        testMotor();
