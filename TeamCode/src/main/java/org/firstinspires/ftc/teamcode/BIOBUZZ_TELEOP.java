@@ -66,8 +66,8 @@ public class BIOBUZZ_TELEOP extends OpMode {
 
         // We set the left motors in reverse which is needed for drive trains where the left
         // motors are opposite to the right ones.
-        backLeftDrive.setDirection(DcMotor.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         transferMotor.setDirection(DcMotor.Direction.REVERSE);
 
@@ -104,6 +104,9 @@ public class BIOBUZZ_TELEOP extends OpMode {
         DefaultControl();
 
         driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+
+//
+//        testMotor();
 
         telemetry.addData("Status", "Running");
         telemetry.addData("Detected", colorDetected);
@@ -196,7 +199,7 @@ public class BIOBUZZ_TELEOP extends OpMode {
 
         //transfer
 
-        boolean colorSensorWorking = false;
+        boolean colorSensorWorking = true;
         if (colorSensorWorking) {
             if (colorDetected == "YELLOW" && !gamepad2.x) {
                 transferMotor.setPower(0);
